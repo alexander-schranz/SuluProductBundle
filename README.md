@@ -1,5 +1,24 @@
 # Sulu Product Bundle
 
+## Product route
+
+The route field of a product lives in the `product_details` form and in the `product_variant`
+overlay, not in the product template. Its field type and its params are configured once for the
+whole project, so a form does not repeat them:
+
+```yaml
+sulu_product:
+    route:
+        type: route # default, e.g. "page_tree_route" for a route below a page
+        params:
+            route_schema: "/products/{implode('-', object)}"
+```
+
+`params` takes any key the configured field type understands and forwards it to the field as-is;
+`route_schema` is the one the `route` field reads to generate the URL out of the fields tagged
+`sulu.rlp.part`. A param configured here wins over the same param declared in the form XML. Both
+forms get the same type and the same params.
+
 ## Variant URLs
 
 A variant owns no route of its own. Referenced from a page, it resolves to its parent's URL plus a

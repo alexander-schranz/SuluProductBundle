@@ -109,6 +109,7 @@ use Sulu\Product\Infrastructure\Sulu\Admin\ProductContentAdmin;
 use Sulu\Product\Infrastructure\Sulu\Admin\ProductContentFormMetadataVisitor;
 use Sulu\Product\Infrastructure\Sulu\Admin\ProductDetailsFieldMetadataValidator;
 use Sulu\Product\Infrastructure\Sulu\Admin\ProductFamilyAdmin;
+use Sulu\Product\Infrastructure\Sulu\Admin\ProductRouteFormMetadataVisitor;
 use Sulu\Product\Infrastructure\Sulu\Admin\ProductsListMetadataVisitor;
 use Sulu\Product\Infrastructure\Sulu\Admin\ProductStatusFormMetadataVisitor;
 use Sulu\Product\Infrastructure\Sulu\Admin\ProductVariantAttributeFormMetadataVisitor;
@@ -232,6 +233,24 @@ final class SuluProductBundle extends AbstractBundle
                     ->info('Query parameter a variant URL carries, e.g. /product/xy?variant=XY-2.')
                     ->defaultValue('variant')
                     ->cannotBeEmpty()
+                ->end()
+                ->arrayNode('route')
+                    ->info('Field type and params of the route field in the "product_details" and "product_variant" forms.')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('type')
+                            ->info('Field type of the route field, e.g. "route" or "page_tree_route".')
+                            ->defaultValue('route')
+                            ->cannotBeEmpty()
+                        ->end()
+                        ->arrayNode('params')
+                            ->info('Params passed to the route field, e.g. "route_schema". Params configured here win over the ones the form declares.')
+                            ->normalizeKeys(false)
+                            ->useAttributeAsKey('name')
+                            ->scalarPrototype()->end()
+                            ->defaultValue([])
+                        ->end()
+                    ->end()
                 ->end()
                 ->arrayNode('association_types')
                     ->info('Custom product association types (e.g. "alternative", "suitable"). Omit the whole section to disable association types.')
@@ -369,6 +388,11 @@ final class SuluProductBundle extends AbstractBundle
         /** @var string $variantQueryParameter */
         $variantQueryParameter = $config['variant_query_parameter'] ?? 'variant';
         $builder->setParameter('sulu_product.variant_query_parameter', $variantQueryParameter);
+
+        /** @var array{type: string, params: array<string, scalar|null>} $route */
+        $route = $config['route'] ?? ['type' => 'route', 'params' => []];
+        $builder->setParameter('sulu_product.route.type', $route['type']);
+        $builder->setParameter('sulu_product.route.params', $route['params']);
 
         $services = $container->services();
 
@@ -873,6 +897,14 @@ final class SuluProductBundle extends AbstractBundle
 
         $services->set('sulu_product.product_code_form_metadata_visitor')
             ->class(ProductCodeFormMetadataVisitor::class)
+            ->tag('sulu_admin.form_metadata_visitor');
+
+        $services->set('sulu_product.product_route_form_metadata_visitor')
+            ->class(ProductRouteFormMetadataVisitor::class)
+            ->args([
+                '%sulu_product.route.type%',
+                '%sulu_product.route.params%',
+            ])
             ->tag('sulu_admin.form_metadata_visitor');
 
         $services->set('sulu_product.products_list_metadata_visitor')
