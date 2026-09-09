@@ -11,13 +11,17 @@ sulu_product:
     route:
         type: route # default, e.g. "page_tree_route" for a route below a page
         params:
-            route_schema: "/products/{implode('-', object)}"
+            route_schema: "/products/{implode('-', object)}" # default
 ```
 
 `params` takes any key the configured field type understands and forwards it to the field as-is;
 `route_schema` is the one the `route` field reads to generate the URL out of the fields tagged
 `sulu.rlp.part`. A param configured here wins over the same param declared in the form XML. Both
 forms get the same type and the same params.
+
+`route_schema` defaults to the value above, so a product URL starts with `/products/` without any
+configuration. A project overrides that key or adds params of its own, and the default stays for
+every key the project does not set.
 
 The same field is added invisibly to every product template, because `RoutableDataMapper` of the
 content package reads the route property off the template metadata. A template declaring its own

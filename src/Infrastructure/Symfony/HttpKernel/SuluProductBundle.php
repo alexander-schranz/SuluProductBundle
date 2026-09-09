@@ -244,11 +244,13 @@ final class SuluProductBundle extends AbstractBundle
                             ->cannotBeEmpty()
                         ->end()
                         ->arrayNode('params')
-                            ->info('Params passed to the route field, e.g. "route_schema". Params configured here win over the ones the form declares.')
+                            ->info('Params passed to the route field. A configured param wins over the one the form declares, and over the default of the same key.')
                             ->normalizeKeys(false)
                             ->useAttributeAsKey('name')
                             ->scalarPrototype()->end()
-                            ->defaultValue([])
+                            ->defaultValue([
+                                'route_schema' => "/products/{implode('-', object)}",
+                            ])
                         ->end()
                     ->end()
                 ->end()
