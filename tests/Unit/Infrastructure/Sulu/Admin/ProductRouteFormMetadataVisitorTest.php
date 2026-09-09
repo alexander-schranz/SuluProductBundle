@@ -17,6 +17,9 @@ use PHPUnit\Framework\TestCase;
 use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\FieldMetadata;
 use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\FormMetadata;
 use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\OptionMetadata;
+use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\TypedFormMetadata;
+use Sulu\Content\Application\ContentDataMapper\DataMapper\TemplateDataMapper;
+use Sulu\Product\Domain\Model\ProductDimensionContent;
 use Sulu\Product\Infrastructure\Sulu\Admin\ProductRouteFormMetadataVisitor;
 
 class ProductRouteFormMetadataVisitorTest extends TestCase
@@ -127,6 +130,61 @@ class ProductRouteFormMetadataVisitorTest extends TestCase
 
         $visitor = new ProductRouteFormMetadataVisitor('route', ['route_schema' => '/products']);
         $visitor->visitFormMetadata($form, 'en', []);
+
+        self::assertSame([], $form->getItems());
+    }
+
+    public function testAddsInvisibleRouteFieldToProductTemplates(): void
+    {
+        $typedFormMetadata = new TypedFormMetadata();
+        $form = new FormMetadata();
+        $form->setKey('product');
+        $form->addItem(new FieldMetadata('title'));
+        $typedFormMetadata->addForm('product', $form);
+
+        $visitor = new ProductRouteFormMetadataVisitor('route', [
+            'route_schema' => '/products/{implode(\'-\', object)}',
+        ]);
+        $visitor->visitTypedFormMetadata($typedFormMetadata, ProductDimensionContent::getTemplateType(), 'en');
+
+        $routeField = $form->getItems()['url'] ?? null;
+        self::assertInstanceOf(FieldMetadata::class, $routeField);
+        self::assertSame('route', $routeField->getType());
+        self::assertSame('false', $routeField->getVisibleCondition());
+        self::assertSame('/products/{implode(\'-\', object)}', $routeField->getOptions()['route_schema']->getValue());
+        // the slug belongs to the route entity, never to the template data
+        self::assertTrue($routeField->hasTag(TemplateDataMapper::SKIP_TAG));
+    }
+
+    public function testKeepsARouteFieldTheTemplateDeclares(): void
+    {
+        $routeField = new FieldMetadata('url');
+        $routeField->setType('route');
+
+        $typedFormMetadata = new TypedFormMetadata();
+        $form = new FormMetadata();
+        $form->setKey('product');
+        $form->addItem($routeField);
+        $typedFormMetadata->addForm('product', $form);
+
+        $visitor = new ProductRouteFormMetadataVisitor('page_tree_route', ['route_schema' => '/products']);
+        $visitor->visitTypedFormMetadata($typedFormMetadata, ProductDimensionContent::getTemplateType(), 'en');
+
+        self::assertSame($routeField, $form->getItems()['url']);
+        self::assertSame('page_tree_route', $routeField->getType());
+        // a declared field stays visible, only the injected one is hidden
+        self::assertNull($routeField->getVisibleCondition());
+    }
+
+    public function testIgnoresOtherTemplateTypes(): void
+    {
+        $typedFormMetadata = new TypedFormMetadata();
+        $form = new FormMetadata();
+        $form->setKey('default');
+        $typedFormMetadata->addForm('default', $form);
+
+        $visitor = new ProductRouteFormMetadataVisitor('route', ['route_schema' => '/products']);
+        $visitor->visitTypedFormMetadata($typedFormMetadata, 'page', 'en');
 
         self::assertSame([], $form->getItems());
     }

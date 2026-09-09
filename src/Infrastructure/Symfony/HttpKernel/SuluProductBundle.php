@@ -905,7 +905,8 @@ final class SuluProductBundle extends AbstractBundle
                 '%sulu_product.route.type%',
                 '%sulu_product.route.params%',
             ])
-            ->tag('sulu_admin.form_metadata_visitor');
+            ->tag('sulu_admin.form_metadata_visitor')
+            ->tag('sulu_admin.typed_form_metadata_visitor');
 
         $services->set('sulu_product.products_list_metadata_visitor')
             ->class(ProductsListMetadataVisitor::class)

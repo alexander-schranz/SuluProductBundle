@@ -19,6 +19,10 @@ sulu_product:
 `sulu.rlp.part`. A param configured here wins over the same param declared in the form XML. Both
 forms get the same type and the same params.
 
+The same field is added invisibly to every product template, because `RoutableDataMapper` of the
+content package reads the route property off the template metadata. A template declaring its own
+`url` property keeps it and only receives the configured type and params.
+
 ## Variant URLs
 
 A variant owns no route of its own. Referenced from a page, it resolves to its parent's URL plus a
