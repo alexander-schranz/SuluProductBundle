@@ -25,11 +25,8 @@ use Sulu\Product\Domain\Model\ProductDimensionContent;
 use Sulu\Product\Domain\Model\ProductInterface;
 
 /**
- * Applies the `sulu_product.route` configuration to the route field of the product forms, so a
- * project sets the route type and its params (e.g. `route_schema`) once instead of per form.
- *
- * The product templates get the same field invisibly, because RoutableDataMapper reads the route
- * property off the template metadata while the editable field lives in the product forms.
+ * Applies the `sulu_product.route` configuration to the route field of the product forms, and adds
+ * the same field invisibly to the product templates, where RoutableDataMapper reads it.
  *
  * @internal
  */
@@ -81,8 +78,6 @@ class ProductRouteFormMetadataVisitor implements FormMetadataVisitorInterface, T
             }
 
             $this->applyRouteConfig($routeField);
-
-            // the slug belongs to the route entity, so it never becomes template data
             $this->addTag($routeField, TemplateDataMapper::SKIP_TAG);
         }
     }
@@ -96,16 +91,10 @@ class ProductRouteFormMetadataVisitor implements FormMetadataVisitorInterface, T
             $option->setName($name);
             $option->setValue($value);
 
-            // addOption is keyed by the option name, so a configured param overwrites the
-            // one the form or the template declares
             $routeField->addOption($option);
         }
     }
 
-    /**
-     * A tag of the same name is merged, keeping the priority and the attributes the form or the
-     * template declares, because FieldMetadata::addTag appends and would carry a second one.
-     */
     private function addTag(FieldMetadata $routeField, string $name): void
     {
         foreach ($routeField->getTags() as $tag) {
