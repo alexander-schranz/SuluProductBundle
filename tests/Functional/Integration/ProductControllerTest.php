@@ -24,6 +24,7 @@ use Sulu\Product\Domain\Repository\AttributeGroupRepositoryInterface;
 use Sulu\Product\Domain\Repository\AttributeRepositoryInterface;
 use Sulu\Product\Domain\Repository\ProductRepositoryInterface;
 use Sulu\Product\UserInterface\Controller\Admin\ProductController;
+use Sulu\Route\Domain\Repository\RouteRepositoryInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 #[CoversClass(ProductController::class)]
@@ -91,13 +92,14 @@ class ProductControllerTest extends SuluTestCase
             [],
             [],
             [],
-            \json_encode([
+            \json_encode(\array_filter([
                 'locale' => 'en',
                 'title' => $title,
-                'url' => '/test-product-' . $counter,
+                // a product with variants shows no route field, its variants carry the routes
+                'url' => ProductInterface::TYPE_PRODUCT_WITH_VARIANTS === $type ? null : '/test-product-' . $counter,
                 'productFamily' => $familyId,
                 'type' => $type,
-            ]) ?: null,
+            ], static fn ($value) => null !== $value)) ?: null,
         );
         $this->assertHttpStatusCode(201, $this->client->getResponse());
         $data = \json_decode((string) $this->client->getResponse()->getContent(), true);
@@ -198,6 +200,30 @@ class ProductControllerTest extends SuluTestCase
         $id = $data['id'];
         $this->assertIsString($id);
         $this->assertNotEmpty($id);
+    }
+
+    public function testPostProductWithVariantsWithoutUrlCreatesNoRoute(): void
+    {
+        self::purgeDatabase();
+        $familyId = $this->createProductFamily();
+
+        $productId = $this->createProduct($familyId, 'Plain Product');
+        $withVariantsId = $this->createProduct($familyId, 'Variant Parent Product', ProductInterface::TYPE_PRODUCT_WITH_VARIANTS);
+
+        /** @var RouteRepositoryInterface $routeRepository */
+        $routeRepository = self::getContainer()->get(RouteRepositoryInterface::class);
+
+        $this->assertTrue($routeRepository->existBy([
+            'resourceKey' => ProductInterface::RESOURCE_KEY,
+            'resourceId' => $productId,
+            'locale' => 'en',
+        ]));
+
+        $this->assertFalse($routeRepository->existBy([
+            'resourceKey' => ProductInterface::RESOURCE_KEY,
+            'resourceId' => $withVariantsId,
+            'locale' => 'en',
+        ]));
     }
 
     public function testGet(): void

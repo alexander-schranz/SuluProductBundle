@@ -20,6 +20,9 @@ use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\OptionMetadata;
 use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\TagMetadata;
 use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\TypedFormMetadata;
 use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\TypedFormMetadataVisitorInterface;
+use Sulu\Bundle\AdminBundle\Metadata\SchemaMetadata\PropertyMetadata;
+use Sulu\Bundle\AdminBundle\Metadata\SchemaMetadata\SchemaMetadata;
+use Sulu\Bundle\AdminBundle\Metadata\SchemaMetadata\StringMetadata;
 use Sulu\Content\Application\ContentDataMapper\DataMapper\TemplateDataMapper;
 use Sulu\Product\Domain\Model\ProductDimensionContent;
 use Sulu\Product\Domain\Model\ProductInterface;
@@ -59,6 +62,15 @@ class ProductRouteFormMetadataVisitor implements FormMetadataVisitorInterface, T
         }
 
         $this->applyRouteConfig($routeField);
+
+        if (ProductInterface::FORM_KEY_VARIANT !== $formMetadata->getKey()) {
+            return;
+        }
+
+        $routeField->setRequired(true);
+        $formMetadata->setSchema($formMetadata->getSchema()->merge(new SchemaMetadata([
+            new PropertyMetadata(self::FIELD_NAME, true, new StringMetadata(1)),
+        ])));
     }
 
     public function visitTypedFormMetadata(TypedFormMetadata $formMetadata, string $key, string $locale, array $metadataOptions = []): void
