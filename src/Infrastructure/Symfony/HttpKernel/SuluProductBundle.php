@@ -93,6 +93,7 @@ use Sulu\Product\Domain\Repository\AttributeGroupRepositoryInterface;
 use Sulu\Product\Domain\Repository\AttributeRepositoryInterface;
 use Sulu\Product\Domain\Repository\ProductFamilyRepositoryInterface;
 use Sulu\Product\Domain\Repository\ProductRepositoryInterface;
+use Sulu\Product\Infrastructure\Doctrine\EventListener\ProductWithVariantsRouteGuard;
 use Sulu\Product\Infrastructure\Doctrine\Repository\AttributeGroupRepository;
 use Sulu\Product\Infrastructure\Doctrine\Repository\AttributeRepository;
 use Sulu\Product\Infrastructure\Doctrine\Repository\ProductFamilyRepository;
@@ -900,6 +901,10 @@ final class SuluProductBundle extends AbstractBundle
         $services->set('sulu_product.product_code_form_metadata_visitor')
             ->class(ProductCodeFormMetadataVisitor::class)
             ->tag('sulu_admin.form_metadata_visitor');
+
+        $services->set('sulu_product.product_with_variants_route_guard')
+            ->class(ProductWithVariantsRouteGuard::class)
+            ->tag('doctrine.event_listener', ['event' => 'onFlush']);
 
         $services->set('sulu_product.product_route_form_metadata_visitor')
             ->class(ProductRouteFormMetadataVisitor::class)
