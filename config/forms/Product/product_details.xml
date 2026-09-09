@@ -18,7 +18,7 @@
             <tag name="sulu.rlp.part"/>
         </property>
 
-        <property name="url" type="route" colspan="12">
+        <property name="url" type="route">
             <meta>
                 <title>sulu_product.url</title>
             </meta>
