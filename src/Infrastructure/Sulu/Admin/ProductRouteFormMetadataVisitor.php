@@ -39,6 +39,8 @@ class ProductRouteFormMetadataVisitor implements FormMetadataVisitorInterface, T
 
     private const FIELD_NAME = 'url';
 
+    private const RESOURCE_LOCATOR_TAG = 'sulu.rlp';
+
     /**
      * @param array<string, scalar|null> $params
      */
@@ -74,11 +76,14 @@ class ProductRouteFormMetadataVisitor implements FormMetadataVisitorInterface, T
             if (!$routeField instanceof FieldMetadata) {
                 $routeField = new FieldMetadata(self::FIELD_NAME);
                 $routeField->setVisibleCondition('false');
+                $this->addTag($routeField, self::RESOURCE_LOCATOR_TAG);
                 $form->addItem($routeField);
             }
 
             $this->applyRouteConfig($routeField);
-            $this->skipTemplateData($routeField);
+
+            // the slug belongs to the route entity, so it never becomes template data
+            $this->addTag($routeField, TemplateDataMapper::SKIP_TAG);
         }
     }
 
@@ -91,23 +96,26 @@ class ProductRouteFormMetadataVisitor implements FormMetadataVisitorInterface, T
             $option->setName($name);
             $option->setValue($value);
 
-            // addOption is keyed by name, so a configured param replaces the one of the form
+            // addOption is keyed by the option name, so a configured param overwrites the
+            // one the form or the template declares
             $routeField->addOption($option);
         }
     }
 
     /**
-     * The slug belongs to the route entity. Tagged here rather than left to the visitor of the
-     * content package, whose order against this one is not defined.
+     * A tag of the same name is merged, keeping the priority and the attributes the form or the
+     * template declares, because FieldMetadata::addTag appends and would carry a second one.
      */
-    private function skipTemplateData(FieldMetadata $routeField): void
+    private function addTag(FieldMetadata $routeField, string $name): void
     {
-        if ($routeField->hasTag(TemplateDataMapper::SKIP_TAG)) {
-            return;
+        foreach ($routeField->getTags() as $tag) {
+            if ($tag->getName() === $name) {
+                return;
+            }
         }
 
         $tag = new TagMetadata();
-        $tag->setName(TemplateDataMapper::SKIP_TAG);
+        $tag->setName($name);
         $routeField->addTag($tag);
     }
 }

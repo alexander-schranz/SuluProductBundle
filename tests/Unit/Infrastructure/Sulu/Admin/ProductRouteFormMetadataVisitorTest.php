@@ -17,6 +17,7 @@ use PHPUnit\Framework\TestCase;
 use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\FieldMetadata;
 use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\FormMetadata;
 use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\OptionMetadata;
+use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\TagMetadata;
 use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\TypedFormMetadata;
 use Sulu\Content\Application\ContentDataMapper\DataMapper\TemplateDataMapper;
 use Sulu\Product\Domain\Model\ProductDimensionContent;
@@ -152,8 +153,34 @@ class ProductRouteFormMetadataVisitorTest extends TestCase
         self::assertSame('route', $routeField->getType());
         self::assertSame('false', $routeField->getVisibleCondition());
         self::assertSame('/products/{implode(\'-\', object)}', $routeField->getOptions()['route_schema']->getValue());
+        self::assertTrue($routeField->hasTag('sulu.rlp'));
         // the slug belongs to the route entity, never to the template data
         self::assertTrue($routeField->hasTag(TemplateDataMapper::SKIP_TAG));
+    }
+
+    public function testMergesTagsTheTemplateDeclares(): void
+    {
+        $declaredTag = new TagMetadata();
+        $declaredTag->setName('sulu.rlp');
+        $declaredTag->setPriority(1);
+
+        $routeField = new FieldMetadata('url');
+        $routeField->setType('route');
+        $routeField->addTag($declaredTag);
+
+        $typedFormMetadata = new TypedFormMetadata();
+        $form = new FormMetadata();
+        $form->setKey('product');
+        $form->addItem($routeField);
+        $typedFormMetadata->addForm('product', $form);
+
+        $visitor = new ProductRouteFormMetadataVisitor('route', ['route_schema' => '/products']);
+        $visitor->visitTypedFormMetadata($typedFormMetadata, ProductDimensionContent::getTemplateType(), 'en');
+        $visitor->visitTypedFormMetadata($typedFormMetadata, ProductDimensionContent::getTemplateType(), 'en');
+
+        $tagNames = \array_map(static fn (TagMetadata $tag): string => $tag->getName(), $routeField->getTags());
+        self::assertSame(['sulu.rlp', TemplateDataMapper::SKIP_TAG], $tagNames);
+        self::assertSame(1, $declaredTag->getPriority());
     }
 
     public function testKeepsARouteFieldTheTemplateDeclares(): void
