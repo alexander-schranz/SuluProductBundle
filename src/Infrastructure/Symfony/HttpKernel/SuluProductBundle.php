@@ -402,7 +402,7 @@ final class SuluProductBundle extends AbstractBundle
         $builder->setParameter('sulu_product.variant_query_parameter', $variantQueryParameter);
 
         /** @var array{type: string, params: array<string, scalar|null>} $route */
-        $route = $config['route'] ?? ['type' => 'route', 'params' => []];
+        $route = $config['route'];
         $builder->setParameter('sulu_product.route.type', $route['type']);
         $builder->setParameter('sulu_product.route.params', $route['params']);
 

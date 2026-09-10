@@ -186,6 +186,16 @@ class ProductRouteFormMetadataVisitorTest extends TestCase
         self::assertTrue($routeField->hasTag('sulu.rlp'));
         // the slug belongs to the route entity, never to the template data
         self::assertTrue($routeField->hasTag(TemplateDataMapper::SKIP_TAG));
+
+        $searchTag = null;
+        foreach ($routeField->getTags() as $tag) {
+            if (TagMetadata::SEARCH_FIELD_TAG === $tag->getName()) {
+                $searchTag = $tag;
+            }
+        }
+
+        self::assertInstanceOf(TagMetadata::class, $searchTag);
+        self::assertSame('url', $searchTag->getAttribute('role'));
     }
 
     public function testMergesTagsTheTemplateDeclares(): void

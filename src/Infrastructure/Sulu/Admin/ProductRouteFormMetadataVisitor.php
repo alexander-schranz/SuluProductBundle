@@ -38,6 +38,8 @@ class ProductRouteFormMetadataVisitor implements FormMetadataVisitorInterface, T
 
     private const RESOURCE_LOCATOR_TAG = 'sulu.rlp';
 
+    private const SEARCH_FIELD_ROLE = 'url';
+
     /**
      * @param array<string, scalar|null> $params
      */
@@ -80,6 +82,7 @@ class ProductRouteFormMetadataVisitor implements FormMetadataVisitorInterface, T
                 $routeField = new FieldMetadata(self::FIELD_NAME);
                 $routeField->setVisibleCondition('false');
                 $this->addTag($routeField, self::RESOURCE_LOCATOR_TAG);
+                $this->addTag($routeField, TagMetadata::SEARCH_FIELD_TAG, ['role' => self::SEARCH_FIELD_ROLE]);
                 $form->addItem($routeField);
             }
 
@@ -101,7 +104,10 @@ class ProductRouteFormMetadataVisitor implements FormMetadataVisitorInterface, T
         }
     }
 
-    private function addTag(FieldMetadata $routeField, string $name): void
+    /**
+     * @param array<string, string> $attributes
+     */
+    private function addTag(FieldMetadata $routeField, string $name, array $attributes = []): void
     {
         foreach ($routeField->getTags() as $tag) {
             if ($tag->getName() === $name) {
@@ -111,6 +117,7 @@ class ProductRouteFormMetadataVisitor implements FormMetadataVisitorInterface, T
 
         $tag = new TagMetadata();
         $tag->setName($name);
+        $tag->setAttributes($attributes);
         $routeField->addTag($tag);
     }
 }

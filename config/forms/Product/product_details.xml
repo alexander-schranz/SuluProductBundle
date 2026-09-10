@@ -6,7 +6,7 @@
     <key>product_details</key>
 
     <properties>
-        <property name="type" type="single_select" mandatory="true" colspan="4" disabledCondition="!!id or url" >
+        <property name="type" type="single_select" mandatory="true" colspan="4" disabledCondition="!!id or url">
             <!-- as soon as an URL generated we can not allow to switch back as emptying an URL is not possible -->
             <meta>
                 <title>sulu_product.product_type</title>

@@ -226,6 +226,44 @@ class ProductControllerTest extends SuluTestCase
         ]));
     }
 
+    public function testPostProductWithVariantsWithUrlCreatesNoRoute(): void
+    {
+        self::purgeDatabase();
+        $familyId = $this->createProductFamily();
+
+        $this->client->request(
+            'POST',
+            '/admin/api/products.json?locale=en',
+            [],
+            [],
+            [],
+            \json_encode([
+                'locale' => 'en',
+                'title' => 'Variant Parent Product',
+                'url' => '/test-variant-parent-product',
+                'productFamily' => $familyId,
+                'type' => ProductInterface::TYPE_PRODUCT_WITH_VARIANTS,
+            ]) ?: null,
+        );
+
+        $response = $this->client->getResponse();
+        $this->assertHttpStatusCode(201, $response);
+
+        $data = \json_decode((string) $response->getContent(), true);
+        $this->assertIsArray($data);
+        $id = $data['id'];
+        $this->assertIsString($id);
+
+        /** @var RouteRepositoryInterface $routeRepository */
+        $routeRepository = self::getContainer()->get(RouteRepositoryInterface::class);
+
+        $this->assertFalse($routeRepository->existBy([
+            'resourceKey' => ProductInterface::RESOURCE_KEY,
+            'resourceId' => $id,
+            'locale' => 'en',
+        ]));
+    }
+
     public function testGet(): void
     {
         self::purgeDatabase();
