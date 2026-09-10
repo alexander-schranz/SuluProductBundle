@@ -95,7 +95,7 @@ class ProductRouteFormMetadataVisitor implements FormMetadataVisitorInterface, T
         foreach ($this->params as $name => $value) {
             $option = new OptionMetadata();
             $option->setName($name);
-            $option->setValue($value);
+            $option->setValue(\is_float($value) ? (string) $value : $value);
 
             $routeField->addOption($option);
         }
