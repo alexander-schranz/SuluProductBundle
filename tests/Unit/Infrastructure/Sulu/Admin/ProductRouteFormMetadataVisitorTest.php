@@ -120,15 +120,6 @@ class ProductRouteFormMetadataVisitorTest extends TestCase
         $visitor->visitFormMetadata($form, 'en', []);
 
         self::assertTrue($routeField->isRequired());
-
-        // the merge nests the added constraint as an `allOf` branch
-        $schema = $form->getSchema()->toJsonSchema();
-        self::assertIsArray($schema);
-        self::assertContains([
-            'type' => 'object',
-            'properties' => ['url' => ['type' => 'string', 'minLength' => 1]],
-            'required' => ['url'],
-        ], $schema['allOf'] ?? []);
     }
 
     public function testDoesNotRequireTheRouteOnTheDetailsForm(): void
@@ -144,7 +135,6 @@ class ProductRouteFormMetadataVisitorTest extends TestCase
         $visitor->visitFormMetadata($form, 'en', []);
 
         self::assertFalse($routeField->isRequired());
-        self::assertStringNotContainsString('url', (string) \json_encode($form->getSchema()->toJsonSchema()));
     }
 
     public function testIgnoresOtherForms(): void

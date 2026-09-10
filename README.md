@@ -29,21 +29,10 @@ content package reads the route property off the template metadata. A template d
 
 ## Variant URLs
 
-A variant owns no route of its own. Referenced from a page, it resolves to its parent's URL plus a
-query parameter carrying the variant code, so `/products/cable` with code `XY-2` resolves to
-`/products/cable?variant=XY-2`.
-
-The bundle only writes that URL — nothing reads the parameter back off the request. A project
-selects the variant itself, which makes the key a contract between both sides: change it under
-`sulu_product.variant_query_parameter` and the reading side has to match by hand.
-
-```yaml
-sulu_product:
-    variant_query_parameter: 'variant' # default
-```
-
-A variant whose parent has no published route in the requested locale resolves without a `url`,
-because an empty string would point at the site root.
+A variant owns its route: the URL field is mandatory on the variant overlay, so every variant
+carries an address of its own. A product with variants owns none, it is reached through its
+variants, which is why the field is hidden for that type and the route guard drops one that
+reaches such a product programmatically.
 
 ## Association form overrides
 
