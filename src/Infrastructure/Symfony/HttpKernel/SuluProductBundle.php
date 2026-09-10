@@ -182,6 +182,14 @@ final class SuluProductBundle extends AbstractBundle
     use PersistenceExtensionTrait;
 
     /**
+     * Merged into the configured params, because the default of a prototyped node is replaced by
+     * the params a project sets instead of merged with them.
+     */
+    private const DEFAULT_ROUTE_PARAMS = [
+        'route_schema' => "/products/{implode('-', object)}",
+    ];
+
+    /**
      * @internal this method is not part of the public API and should only be called by the Symfony framework classes
      */
     public function configure(DefinitionConfigurator $definition): void
@@ -249,9 +257,10 @@ final class SuluProductBundle extends AbstractBundle
                             ->normalizeKeys(false)
                             ->useAttributeAsKey('name')
                             ->scalarPrototype()->end()
-                            ->defaultValue([
-                                'route_schema' => "/products/{implode('-', object)}",
-                            ])
+                            ->defaultValue(self::DEFAULT_ROUTE_PARAMS)
+                            ->validate()
+                                ->always(static fn (array $params): array => [...self::DEFAULT_ROUTE_PARAMS, ...$params])
+                            ->end()
                         ->end()
                     ->end()
                 ->end()
