@@ -59,9 +59,10 @@ class ProductWithVariantsRouteGuardTest extends TestCase
         $dimensionContent->setRoute($route);
 
         $this->schedule(insertions: [$dimensionContent]);
-        $this->unitOfWork->isScheduledForInsert($dimensionContent)->willReturn(true);
         $this->unitOfWork->isScheduledForInsert($route)->willReturn(true);
-        $this->unitOfWork->computeChangeSet(Argument::any(), $dimensionContent)->shouldBeCalled();
+        // computeChangeSet() would replace the insert's full changeset with a one-field diff.
+        $this->unitOfWork->computeChangeSet(Argument::cetera())->shouldNotBeCalled();
+        $this->unitOfWork->recomputeSingleEntityChangeSet(Argument::any(), $dimensionContent)->shouldBeCalled();
         $this->entityManager->detach($route)->shouldBeCalled();
 
         $this->guard()->onFlush(new OnFlushEventArgs($this->entityManager->reveal()));
@@ -76,7 +77,6 @@ class ProductWithVariantsRouteGuardTest extends TestCase
         $dimensionContent->setRoute($route);
 
         $this->schedule(updates: [$dimensionContent]);
-        $this->unitOfWork->isScheduledForInsert($dimensionContent)->willReturn(false);
         $this->unitOfWork->isScheduledForInsert($route)->willReturn(false);
         $this->unitOfWork->recomputeSingleEntityChangeSet(Argument::any(), $dimensionContent)->shouldBeCalled();
         $this->entityManager->detach(Argument::any())->shouldNotBeCalled();

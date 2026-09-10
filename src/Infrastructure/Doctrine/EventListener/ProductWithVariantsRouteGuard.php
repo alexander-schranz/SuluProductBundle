@@ -52,12 +52,9 @@ class ProductWithVariantsRouteGuard
 
             $entity->removeRoute();
 
-            $metadata = $entityManager->getClassMetadata($entity::class);
-            if ($unitOfWork->isScheduledForInsert($entity)) {
-                $unitOfWork->computeChangeSet($metadata, $entity);
-            } else {
-                $unitOfWork->recomputeSingleEntityChangeSet($metadata, $entity);
-            }
+            // Recompute, never compute: a second computeChangeSet() on a scheduled insert replaces
+            // its full changeset with a one-field diff, leaving the INSERT short of bound values.
+            $unitOfWork->recomputeSingleEntityChangeSet($entityManager->getClassMetadata($entity::class), $entity);
 
             if ($unitOfWork->isScheduledForInsert($route)) {
                 $entityManager->detach($route);
