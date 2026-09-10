@@ -59,7 +59,6 @@ class ProductWithVariantsRouteGuard
                 $unitOfWork->recomputeSingleEntityChangeSet($metadata, $entity);
             }
 
-            // a route the same flush would insert has no owner left
             if ($unitOfWork->isScheduledForInsert($route)) {
                 $entityManager->detach($route);
             }
