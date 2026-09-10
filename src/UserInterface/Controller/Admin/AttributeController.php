@@ -69,7 +69,16 @@ final class AttributeController implements SecuredControllerInterface
         $listBuilder = $this->listBuilderFactory->create(AttributeInterface::class);
         $listBuilder->setIdField($fieldDescriptors['id']);
         $this->restHelper->initializeListBuilder($listBuilder, $fieldDescriptors);
+
+        // The "product_family_attributes" form field groups the rows by these three, but
+        // setSelectFields() drops group and position because they are visibility="never".
+        foreach (['group', 'groupName', 'position'] as $fieldName) {
+            $listBuilder->addSelectField($fieldDescriptors[$fieldName]);
+        }
+
+        // Positions count per group, so the default order is group name first.
         if (!$request->query->has('sortBy')) {
+            $listBuilder->sort($fieldDescriptors['groupName'], 'asc');
             $listBuilder->sort($fieldDescriptors['position'], 'asc');
         }
         $listBuilder->setParameter('locale', $this->getLocale($request));

@@ -140,11 +140,11 @@ class ProductFamilyControllerTest extends TestCase
             Argument::that(function(Envelope $envelope): bool {
                 $message = $envelope->getMessage();
 
-                // Nested attributes map is read straight from the request; non-array entries are ignored.
+                // The submitted list is normalised as-is; entries without an id are dropped.
                 return $message instanceof CreateProductFamilyMessage
                     && [
-                        9 => ['enabled' => true, 'required' => false, 'variantSpecific' => false],
-                        10 => ['enabled' => false, 'required' => false, 'variantSpecific' => false],
+                        ['id' => 'uuid-9', 'required' => false, 'variantSpecific' => false],
+                        ['id' => 'uuid-10', 'required' => false, 'variantSpecific' => false],
                     ] === $message->getAttributes();
             }),
             Argument::any(),
@@ -162,9 +162,10 @@ class ProductFamilyControllerTest extends TestCase
                 'name' => 'New Family',
                 'description' => null,
                 'attributes' => [
-                    9 => ['enabled' => true, 'required' => false],
-                    10 => ['enabled' => false],
-                    11 => 'not-an-array',
+                    ['id' => 'uuid-9', 'required' => false],
+                    ['id' => 'uuid-10'],
+                    'not-an-array',
+                    ['required' => true],
                 ],
             ],
         );
@@ -187,7 +188,7 @@ class ProductFamilyControllerTest extends TestCase
                 $message = $envelope->getMessage();
 
                 return $message instanceof CreateProductFamilyMessage
-                    && [9 => ['enabled' => true, 'required' => false, 'variantSpecific' => true]] === $message->getAttributes();
+                    && [['id' => 'uuid-9', 'required' => false, 'variantSpecific' => true]] === $message->getAttributes();
             }),
             Argument::any(),
         )
@@ -204,7 +205,7 @@ class ProductFamilyControllerTest extends TestCase
                 'name' => 'New Family',
                 'description' => null,
                 'attributes' => [
-                    9 => ['enabled' => true, 'required' => false, 'variantSpecific' => true],
+                    ['id' => 'uuid-9', 'required' => false, 'variantSpecific' => true],
                 ],
             ],
         );
